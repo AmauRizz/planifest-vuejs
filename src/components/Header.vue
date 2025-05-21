@@ -30,9 +30,9 @@
     </nav>
 
     <nav class="action-nav">
-      <a class="nav-icon" href="#">
+      <router-link class="nav-icon" to="/account">
         <img src="../assets/images/user.png" alt="Account"/>
-      </a>
+      </router-link>
     </nav>
   </header>
 </template>
@@ -92,12 +92,12 @@
   }
 
   header:not(.scrolled) a:hover, /*when scrolled false*/
-  header:not(.scrolled) a:active {
+  header:not(.scrolled) a:focus {
     color: var(--text-primary-color-hover);
   }
 
   header.scrolled a:hover, /*when scrolled true*/
-  header:not(.scrolled) a:active {
+  header:not(.scrolled) a:focus {
     color: var(--text-secondary-color-hover);
   }
 </style>

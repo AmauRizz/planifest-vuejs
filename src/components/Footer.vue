@@ -7,8 +7,7 @@
       <router-link to="/">
         <img src="/vite.svg" alt="Vue logo"/>
       </router-link>
-      <router-link to="/contact">Contact</router-link>
-      <router-link to="/contact">Events</router-link>
+      <a href="https://www.amaurymulcey.fr">My Portfolio</a>
     </div>
 
     <div class="information">
@@ -17,7 +16,7 @@
       <router-link to="Security">Security</router-link>
     </div>
 
-    <p class="copyright">&copy; 2025 Plani'fest. All rights reserved.</p>
+    <p class="copyright">&copy; {{ new Date().getFullYear() }} Plani'fest. All rights reserved.</p>
   </footer>
 </template>
 
@@ -35,7 +34,7 @@
   .main-nav {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
 
   .main-nav a {
@@ -45,12 +44,12 @@
 
   .information {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
 
   .information a {
     text-decoration: none;
-    color: var(--text-primary-color-description);
+    color: var(--text-secondary-color-description);
   }
 
   a:hover,

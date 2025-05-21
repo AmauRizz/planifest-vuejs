@@ -13,8 +13,8 @@
       <div class="home__cta">
         <p class="home__cta-text">Create, connect, and<br />vibe with Plani'fest.</p>
         <div class="home__cta-buttons">
-          <a class="home__cta-btn home__cta-btn--primary" href="/events">Explore Events</a>
-          <button class="home__cta-btn home__cta-btn--secondary">join the community</button>
+          <router-link class="home__cta-btn home__cta-btn--primary" to="/events">Explore Events</router-link>
+          <router-link class="home__cta-btn home__cta-btn--secondary" to="/account">join the community</router-link>
         </div>
         <p class="home__cta-note"><em>Join +n users for free</em></p>
       </div>
@@ -22,9 +22,9 @@
 
     <div class="home__illustration">
       <div class="home__card-fan">
-        <img class="home__card home__card--left" src="/src/assets/images/illustration1.jpg" alt="card1" />
-        <img class="home__card home__card--center" src="/src/assets/images/illustration2.jpg" alt="card2"/>
-        <img class="home__card home__card--right" src="/src/assets/images/illustration3.jpg" alt="card3" />
+        <img class="home__card home__card--left" src="/src/assets/images/illustration3.jpg" alt="card1" />
+        <img class="home__card home__card--center" src="/src/assets/images/illustration1.jpg" alt="card2"/>
+        <img class="home__card home__card--right" src="/src/assets/images/illustration2.jpg" alt="card3" />
       </div>
     </div>
   </section>

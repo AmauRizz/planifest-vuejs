@@ -16,9 +16,13 @@ body {
     --background-primary-color: #F9FAFB;
     --background-secondary-color: #121212;
 
+    --background-primary-card-color: #E5E7EB;
+    --background-secondary-card-color: #374151;
+
     --text-primary-color: #1F2937;
     --text-primary-color-description: #6B7280;
     --text-secondary-color: #F3F4F6;
+    --text-secondary-color-description: #999ea8;
 
     --text-primary-color-hover: #285eb6;
     --text-secondary-color-hover: #799edc;

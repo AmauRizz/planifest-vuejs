@@ -5,12 +5,24 @@
 
 <template>
   <Header />
-  <router-view />
+  <router-view/>
   <Footer />
 </template>
 
 <style>
+  html, body, #app {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   body {
     background-color: #f2f2f2;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
   }
 </style>
