@@ -1,266 +1,272 @@
 <script setup lang="ts">
-  import {computed, onMounted, ref} from "vue";
-  import type {Category, Event} from "@/types/database.ts";
-  import {getEvents, createEvent} from "@/services/eventService.ts"
-  import {getCategories} from "@/services/categoryService.ts";
+import {computed, onMounted, ref} from "vue";
+import type {Category, Event} from "@/types/database.ts";
+import {getEvents} from "@/services/eventService.ts"
+import {useAuthStore} from "@/stores/auth.ts";
+import CreateEventModal from "@/components/CreateEventModal.vue"
 
-  const events = ref<Event[]>([]);
-  const categories = ref<Category[]>([]);
-  const isLoading = ref(true);
+const events = ref<Event[]>([]);
+const showCreateEvent = ref(false);
+const authStore = useAuthStore();
 
-  onMounted(async () => {
-    try {
-      const resEvents = await getEvents();
-      const resCategories = await getCategories();
-      if (resEvents.success) {
-        events.value = resEvents.data;
-      } else {
-        console.error('API Error:', resEvents.error.message);
-      }
-
-      if (resCategories.success) {
-        categories.value = resCategories.data;
-      } else {
-        console.error('API Error:', resCategories.error.message);
-      }
-    } catch (err) {
-      console.error('Network Error:', err);
-    } finally {
-      isLoading.value = false;
-    }
-  });
-
-  const groupedEvents = computed(() => {
-    const groups: Record<string, Event[]> = {};
-    for (const event of events.value) {
-      const date = event.startingDate;
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(event);
-    }
-    return groups;
-  });
-
-  async function handleCreateEventButton() {
-    try {
-      const eventData = {
-        name: "EventTest",
-        description: "DescriptionTest",
-        startingDate: new Date(),
-        endingDate: new Date(),
-        category: 4,
-      };
-
-      const res = await createEvent(eventData);
-      if (res.success) {
-        window.location.reload();
-      } else {
-        console.error('API Error:', res.error.message);
-      }
-    } catch (err) {
-      console.error('Network Error:', err);
-    }
+function handleCreateEventButton() {
+  if (!authStore.authToken) {
+    return
   }
+
+  showCreateEvent.value = !showCreateEvent.value;
+}
+
+const groupedEvents = computed(() => {
+  const groups: Record<string, Event[]> = {};
+  for (const event of events.value) {
+    const date = event.startingDate;
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(event);
+  }
+  return groups;
+});
+
+onMounted(async () => {
+  const resEvents = await getEvents();
+  if (resEvents.success) {
+    events.value = resEvents.data;
+  }
+});
 </script>
 
 <template>
-  <section class="events">
-    <div class="events__filter">
-      <div>
-        <h3>Sort by</h3>
-        <div class="events__filter-order">
-          <label for="date_order">Date</label>
-          <input type="radio" id="date_order" name="order" value="date" checked />
-        </div>
-      </div>
-
-      <div>
-        <h3>Date range</h3>
-        <div class="events__filter-range">
-          <div>
-            <label for="start">From</label>
-            <input
-                type="date"
-                id="start"
-                name="trip-start"
-            />
-          </div>
-
-          <div>
-            <label for="end">To</label>
-            <input
-                type="date"
-                id="end"
-                name="trip-end"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3>Category</h3>
-        <div class="events__filter-category">
-          <div>
-            <label for="category">Category</label>
-            <select id="category" name="category">
-              <option value="all">All</option>
-              <option v-for="category in categories" :key="category.id">{{category.name}}</option>
-            </select>
-          </div>
-        </div>
-      </div>
+  <section class="events-page">
+    <div class="events-header">
+      <h1>Upcoming Events</h1>
+      <button v-if="authStore.authToken"
+              @click="handleCreateEventButton"
+              class="create-event-btn">
+        <span class="btn-icon">+</span>
+        Create Event
+      </button>
     </div>
 
-    <div class="events__container">
-      <div>
-        <button @click="handleCreateEventButton">create event</button>
-      </div>
-      <article class="events__lists" v-for="(dayEvents, date) in groupedEvents" :key="date">
-        <p class="events__lists-date">{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) }}</p>
-        <router-link class="events__lists-card" v-for="event in dayEvents" :key="event.id" :to="`/events/${event.id}`" >
-          <img class="events__card-image" src="/src/assets/images/illustration1.jpg" :alt="event.name" />
-          <div class="events__card-information">
-            <h3 class="events__card-title">{{ event.name }}</h3>
-            <p class="events__card-author">By author</p>
-            <p class="events__card-location">{{event.address}}</p>
+    <CreateEventModal v-model="showCreateEvent" />
+
+    <div class="events-container">
+      <div class="event-date-group" v-for="(dayEvents, date) in groupedEvents" :key="date">
+        <div class="date-header">
+          <div class="date-details">
+            <span class="month">{{ new Date(date).toLocaleDateString('en-en', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
           </div>
-        </router-link>
-      </article>
+        </div>
+
+        <div class="events-list">
+          <router-link
+              class="event-card"
+              v-for="event in dayEvents"
+              :key="event.id"
+              :to="`/events/${event.id}`"
+          >
+            <div class="event-image-container">
+              <img class="event-image"
+                   :src="event.images[0]?.slug"
+                   :alt="event.name" />
+            </div>
+            <div class="event-content">
+              <h3 class="event-title">{{ event.name }}</h3>
+              <div class="event-details">
+                <p class="event-author">
+                  <span class="material-icon">By:</span>
+                  {{ event.author.name }}
+                </p>
+                <p class="event-location">
+                  <span class="material-icon">Category:</span>
+                  {{ event.category.name }}
+                </p>
+              </div>
+            </div>
+          </router-link>
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-  .category {
-    padding: 0 20rem 0;
+.events-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.events-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary-color);
+}
+
+.create-event-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--cta-primary-color);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-event-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.event-date-group {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.date-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.date-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background-color: var(--cta-primary-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.date-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.month {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary-color);
+  text-transform: capitalize;
+}
+
+.year {
+  font-size: 0.9rem;
+  color: var(--text-primary-color-description);
+}
+
+.events-list {
+  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.event-card {
+  flex: 1 0 300px;
+  max-width: calc(33.333% - 1rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  height: 100%;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.event-image-container {
+  height: 180px;
+  overflow: hidden;
+}
+
+.event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.event-card:hover .event-image {
+  transform: scale(1.05);
+}
+
+.event-content {
+  padding: 1.25rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary-color);
+  margin-bottom: 1rem;
+}
+
+.event-details {
+  margin-top: auto;
+}
+
+.event-author, .event-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-primary-color-description);
+  margin-bottom: 0.5rem;
+}
+
+.material-icon {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 1024px) {
+  .event-card {
+    max-width: calc(50% - 0.75rem);
   }
+}
 
-  .category__container {
-    display: flex;
-    justify-content: space-between;
-    background-color: var(--background-primary-card-color);
+@media (max-width: 768px) {
+  .event-card {
+    max-width: 100%;
   }
-
-  .category__list {
-    display: flex;
-  }
-
-  .category__item-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 6rem;
-    height: 4rem;
-    margin: 0 0.5rem;
-    user-select: none;
-    transition: transform 0.1s ease;
-  }
-
-  .category__item-card:hover,
-  .category__item-card:focus {
-    transform: scale(1.05);
-  }
-
-  .category__item-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(2px);
-    opacity: 0.8;
-  }
-
-  .category__item-title {
-    position: absolute;
-    color: var(--text-secondary-color);
-    font-weight: bold;
-    z-index: 1;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    font-size: 1.2rem;
-  }
-
-
-  .events {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    padding: 0 20rem 0;
-  }
-
-  .events__filter {
-    display: flex;
-    gap: 5rem;
-    background-color: var(--background-primary-card-color);
-  }
-
-  .events__filter-range {
-    display: flex;
-  }
-
-  .events__container {
-    margin-top: 1rem;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1rem;
-    height: 90%;
-    width: 100%;
-
-    background-color: var(--background-primary-card-color);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .events__lists {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .events__lists-date {
-    padding: 1rem;
-    font-weight: bold;
-  }
-
-  .events__lists-card {
-    padding: 1rem;
-    overflow: hidden;
-    border-radius: 0.8rem;
-    background-color: var(--background-primary-card-color);
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.1s ease;
-  }
-
-  .events__lists-card:hover,
-  .events__lists-card:focus {
-    background-color: var(--background-primary-color);
-  }
-
-  .events__card-image {
-    width: 5rem;
-    height: 5rem;
-    object-fit: cover;
-  }
-
-  .events__card-information {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0 1rem;
-    width: 100%;
-  }
-
-  .events__card-title {
-    font-weight: bold;
-    color: var(--text-primary-color);
-  }
-
-  .events__card-author,
-  .events__card-location {
-    font-size: 0.9rem;
-    color: var(--text-primary-color-description);
-  }
+}
 </style>

@@ -7,10 +7,16 @@ export const API_ENDPOINTS = {
     },
 
     USERS: {
+        ROOT: '/users',
         BY_ID: (id: number) => `/users/${id}`,
         BY_EVENT_ID: (eventId: number) => `/events/${eventId}/users`,
+        TOKEN: '/auth/token',
+        ME: '/users/me',
     },
     CATEGORIES: {
         ROOT: '/categories',
+    },
+    IMAGES: {
+        ROOT: '/images'
     }
 };

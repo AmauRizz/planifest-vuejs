@@ -1,7 +1,25 @@
 <script setup lang="ts">
-  import { ref, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+  import { useRouter } from 'vue-router'
+  import AuthModal from "@/components/AuthModal.vue"
+  import {useAuthStore} from "@/stores/auth.ts";
+  import type {User} from "@/types/database.ts";
 
   const isScrolled = ref(false)
+  const showAuth = ref(false)
+
+  let authStore = useAuthStore()
+  const isLoggedIn = computed(() => !!authStore.authToken)
+
+  const router = useRouter()
+
+  const handleAccountClick = () => {
+    if (isLoggedIn.value) {
+      router.push('/account')
+    } else {
+      showAuth.value = !showAuth.value;
+    }
+  }
 
   const handleScroll = () => {
     isScrolled.value = window.scrollY > 0
@@ -20,7 +38,7 @@
   <header :class="{scrolled: isScrolled}">
     <nav class="main-nav">
       <router-link to="/">
-        <img src="/vite.svg" alt="Vue logo"/>
+        <img src="/vite.svg" alt="Vue logo" />
       </router-link>
 
       <div>
@@ -30,11 +48,14 @@
     </nav>
 
     <nav class="action-nav">
-      <router-link class="nav-icon" to="/account">
-        <img src="../assets/images/user.png" alt="Account"/>
-      </router-link>
+      <a class="nav-icon" href="#" @click.prevent="handleAccountClick">
+        <p v-if="!isLoggedIn">Sign In</p>
+        <p v-else>Account</p>
+      </a>
     </nav>
   </header>
+
+  <AuthModal v-model="showAuth" />
 </template>
 
 <style scoped>
@@ -89,6 +110,8 @@
   .nav-pages,
   .nav-icon {
     position: relative;
+    display: flex;
+    align-items: center;
   }
 
   header:not(.scrolled) a:hover, /*when scrolled false*/
